@@ -5,7 +5,7 @@ Tests marked with different sanitizers.
 ## Results
 
 ```
-  builtInSanitizer   x   148 ops/sec ±5.91% (60 runs sampled)
-  domPurifySanitizer x 72.83 ops/sec ±5.99% (54 runs sampled)
-  noSanitizer        x   154 ops/sec ±6.33% (60 runs sampled)
+  builtInSanitizer   x 221 ops/sec ±1.48% (85 runs sampled)
+  domPurifySanitizer x 148 ops/sec ±2.85% (78 runs sampled)
+  noSanitizer        x 216 ops/sec ±0.62% (83 runs sampled)
 ```

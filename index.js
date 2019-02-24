@@ -57,25 +57,29 @@ function markedNoSanitizer() {
   return marked;
 }
 
-function markedWithDOMPurify() {
-  const DOMPurify = createDOMPurify(new JSDOM('').window);
+const DOMPurify = createDOMPurify(new JSDOM('').window);
 
+function withDompurify(md) {
+  return DOMPurify.sanitize(marked(md));
+}
+
+function markedWithDOMPurify() {
   marked.setOptions({
     renderer: getRenderer(),
     ...markedOptions,
     sanitize: false,
   });
-
-  return function(md) {
-    const dirty = marked(md);
-    return DOMPurify.sanitize(dirty);
-  };
+  return withDompurify;
 }
 
 const input = `
   # some markdown
 
   with some code
+
+  <script>
+    alert('hello world');
+  </script>
 
   \`\`\`html
     </code>
