@@ -39,38 +39,13 @@ function getRenderer() {
   return renderer;
 }
 
-function markedWithBuiltinSanitizer() {
-  marked.setOptions({
-    renderer: getRenderer(),
-    ...markedOptions,
-    sanitize: true,
-  });
-  return marked;
-}
-
-function markedNoSanitizer() {
-  marked.setOptions({
-    renderer: getRenderer(),
-    ...markedOptions,
-    sanitize: false,
-  });
-  return marked;
-}
-
 const DOMPurify = createDOMPurify(new JSDOM('').window);
 
-function withDompurify(md) {
-  return DOMPurify.sanitize(marked(md));
+function markedDOMPurify(md, opt) {
+  return DOMPurify.sanitize(marked(md, opt));
 }
 
-function markedWithDOMPurify() {
-  marked.setOptions({
-    renderer: getRenderer(),
-    ...markedOptions,
-    sanitize: false,
-  });
-  return withDompurify;
-}
+const renderer = getRenderer();
 
 const input = `
   # some markdown
@@ -90,28 +65,46 @@ const input = `
   \`\`\`
 `;
 
+const builtInSanitizerOpts = {
+  renderer: getRenderer(),
+  ...markedOptions,
+  sanitize: true,
+};
+
+const domPurifySanitizerOpts = {
+  renderer: getRenderer(),
+  ...markedOptions,
+  sanitize: false,
+};
+
+const noSanitizerOpts = {
+  renderer: getRenderer(),
+  ...markedOptions,
+  sanitize: false,
+};
+
 console.log('input markdow = ');
 console.log(input);
 console.log('');
 console.log('sanitized with built-in marked sanitizer');
-console.log(markedWithBuiltinSanitizer()(input));
+console.log(marked(input, builtInSanitizerOpts));
 console.log('');
 console.log('sanitized with dompurify');
-console.log(markedWithDOMPurify()(input));
+console.log(markedDOMPurify(input, domPurifySanitizerOpts));
 console.log('');
 console.log('no sanitizer');
-console.log(markedNoSanitizer()(input));
+console.log(marked(input, noSanitizerOpts));
 console.log('');
 
 suite
   .add('builtInSanitizer', function() {
-    markedWithBuiltinSanitizer()(input);
+    marked(input, builtInSanitizerOpts);
   })
   .add('domPurifySanitizer', function() {
-    markedWithDOMPurify()(input);
+    markedDOMPurify(input, domPurifySanitizerOpts);
   })
   .add('noSanitizer', function() {
-    markedNoSanitizer()(input);
+    marked(input, noSanitizerOpts);
   })
   .on('cycle', function(event) {
     benchmarks.add(event.target);
