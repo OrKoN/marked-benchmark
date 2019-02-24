@@ -31,11 +31,9 @@ function getRenderer() {
 
   renderer.image = renderer.link;
 
-  renderer.code = (code, language, escaped) => {
+  renderer.code = (code, language) => {
     const highlighted = hl.highlightAuto(code).value;
-    return `<pre><code class="hljs ${language}">${
-      highlighted === code ? escaped : highlighted
-    }</code></pre>`;
+    return `<pre><code class="hljs ${language}">${highlighted}</code></pre>`;
   };
 
   return renderer;
@@ -74,17 +72,17 @@ function markedWithDOMPurify() {
   };
 }
 
-const builtInSanitizer = markedWithBuiltinSanitizer();
-const domPurifySanitizer = markedWithDOMPurify();
-const noSanitizer = markedNoSanitizer();
-
 const input = `
   # some markdown
 
   with some code
 
-  \`\`\`js
+  \`\`\`html
+    </code>
+    </pre>
+    <script>
      alert('hello world');
+    </script>
   \`\`\`
 `;
 
@@ -92,24 +90,24 @@ console.log('input markdow = ');
 console.log(input);
 console.log('');
 console.log('sanitized with built-in marked sanitizer');
-console.log(builtInSanitizer(input));
+console.log(markedWithBuiltinSanitizer()(input));
 console.log('');
 console.log('sanitized with dompurify');
-console.log(domPurifySanitizer(input));
+console.log(markedWithDOMPurify()(input));
 console.log('');
 console.log('no sanitizer');
-console.log(noSanitizer(input));
+console.log(markedNoSanitizer()(input));
 console.log('');
 
 suite
   .add('builtInSanitizer', function() {
-    builtInSanitizer(input);
+    markedWithBuiltinSanitizer()(input);
   })
   .add('domPurifySanitizer', function() {
-    domPurifySanitizer(input);
+    markedWithDOMPurify()(input);
   })
   .add('noSanitizer', function() {
-    noSanitizer(input);
+    markedNoSanitizer()(input);
   })
   .on('cycle', function(event) {
     benchmarks.add(event.target);
@@ -117,4 +115,4 @@ suite
   .on('complete', function() {
     benchmarks.log();
   })
-  .run({ async: true });
+  .run({ async: false });
