@@ -1,0 +1,21 @@
+{
+  "name": "marked-benchmark",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "beautify-benchmark": "0.2.4",
+    "benchmark": "2.1.4",
+    "dompurify": "1.0.10",
+    "highlight.js": "9.14.2",
+    "jsdom": "13.2.0",
+    "marked": "0.6.1",
+    "microtime": "3.0.0"
+  }
+}
