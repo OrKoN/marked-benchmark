@@ -3,6 +3,7 @@
 const Benchmark = require('benchmark');
 const suite = new Benchmark.Suite();
 const benchmarks = require('beautify-benchmark');
+const fs = require('fs');
 
 const marked = require('marked');
 const hl = require('highlight.js');
@@ -21,58 +22,20 @@ renderer.code = (code, language) => {
 const markedOptions = {
   breaks: true,
   gfm: true,
-  mangle: true,
+  mangle: false,
   pedantic: false,
-  smartLists: true,
-  smartypants: true,
+  smartLists: false,
+  smartypants: false,
   tables: false,
   renderer,
 };
 
-const input = `
-  # some markdown
-
-  with some code
-
-  <img src="sdfg" onerror="alert(1)" />
-
-  <script>
-    alert('hello world');
-  </script>
-
-  \`\`\`html
-    </code>
-    </pre>
-    <script>
-     alert('hello world');
-    </script>
-  \`\`\`
-`;
+const input = fs.readFileSync('./samples/README.md', 'utf8');
 
 const builtin = require('./sanitizers/builtin');
 const domPurify = require('./sanitizers/domPurify');
 const insane = require('./sanitizers/insane');
 const nosanitizer = require('./sanitizers/nosanitizer');
-
-console.log('input markdow = ');
-console.log(input);
-console.log('');
-console.log('');
-console.log('sanitized with built-in marked sanitizer');
-console.log(builtin(input, markedOptions));
-console.log('');
-console.log('');
-console.log('sanitized with dompurify');
-console.log(domPurify(input, markedOptions));
-console.log('');
-console.log('');
-console.log('insane');
-console.log(insane(input, markedOptions));
-console.log('');
-console.log('');
-console.log('no sanitizer');
-console.log(nosanitizer(input, markedOptions));
-console.log('');
 
 suite
   .add('builtInSanitizer', function() {
