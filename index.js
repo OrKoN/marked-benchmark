@@ -8,6 +8,9 @@ const fs = require('fs');
 const marked = require('marked');
 const hl = require('highlight.js');
 const renderer = new marked.Renderer();
+
+const withHljs = process.argv[2] === 'true';
+
 renderer.heading = function(text) {
   return '<p><strong>' + text + '</strong></p>';
 };
@@ -15,10 +18,12 @@ renderer.hr = function() {
   return '\n';
 };
 renderer.image = renderer.link;
-renderer.code = (code, language) => {
-  const highlighted = hl.highlightAuto(code).value;
-  return `<pre><code class="hljs ${language}">${highlighted}</code></pre>`;
-};
+if (withHljs) {
+  renderer.code = (code, language) => {
+    const highlighted = hl.highlightAuto(code).value;
+    return `<pre><code class="hljs ${language}">${highlighted}</code></pre>`;
+  };
+}
 const markedOptions = {
   breaks: true,
   gfm: true,
