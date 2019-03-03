@@ -3,11 +3,21 @@
 const Benchmark = require('benchmark');
 const suite = new Benchmark.Suite();
 const benchmarks = require('beautify-benchmark');
+
 const marked = require('marked');
 const hl = require('highlight.js');
-const createDOMPurify = require('dompurify');
-const { JSDOM } = require('jsdom');
-
+const renderer = new marked.Renderer();
+renderer.heading = function(text) {
+  return '<p><strong>' + text + '</strong></p>';
+};
+renderer.hr = function() {
+  return '\n';
+};
+renderer.image = renderer.link;
+renderer.code = (code, language) => {
+  const highlighted = hl.highlightAuto(code).value;
+  return `<pre><code class="hljs ${language}">${highlighted}</code></pre>`;
+};
 const markedOptions = {
   breaks: true,
   gfm: true,
@@ -16,41 +26,15 @@ const markedOptions = {
   smartLists: true,
   smartypants: true,
   tables: false,
+  renderer,
 };
-
-function getRenderer() {
-  const renderer = new marked.Renderer();
-
-  renderer.heading = function(text) {
-    return '<p><strong>' + text + '</strong></p>';
-  };
-
-  renderer.hr = function() {
-    return '\n';
-  };
-
-  renderer.image = renderer.link;
-
-  renderer.code = (code, language) => {
-    const highlighted = hl.highlightAuto(code).value;
-    return `<pre><code class="hljs ${language}">${highlighted}</code></pre>`;
-  };
-
-  return renderer;
-}
-
-const DOMPurify = createDOMPurify(new JSDOM('').window);
-
-function markedDOMPurify(md, opt) {
-  return DOMPurify.sanitize(marked(md, opt));
-}
-
-const renderer = getRenderer();
 
 const input = `
   # some markdown
 
   with some code
+
+  <img src="sdfg" onerror="alert(1)" />
 
   <script>
     alert('hello world');
@@ -65,46 +49,43 @@ const input = `
   \`\`\`
 `;
 
-const builtInSanitizerOpts = {
-  renderer: getRenderer(),
-  ...markedOptions,
-  sanitize: true,
-};
-
-const domPurifySanitizerOpts = {
-  renderer: getRenderer(),
-  ...markedOptions,
-  sanitize: false,
-};
-
-const noSanitizerOpts = {
-  renderer: getRenderer(),
-  ...markedOptions,
-  sanitize: false,
-};
+const builtin = require('./sanitizers/builtin');
+const domPurify = require('./sanitizers/domPurify');
+const insane = require('./sanitizers/insane');
+const nosanitizer = require('./sanitizers/nosanitizer');
 
 console.log('input markdow = ');
 console.log(input);
 console.log('');
+console.log('');
 console.log('sanitized with built-in marked sanitizer');
-console.log(marked(input, builtInSanitizerOpts));
+console.log(builtin(input, markedOptions));
+console.log('');
 console.log('');
 console.log('sanitized with dompurify');
-console.log(markedDOMPurify(input, domPurifySanitizerOpts));
+console.log(domPurify(input, markedOptions));
+console.log('');
+console.log('');
+console.log('insane');
+console.log(insane(input, markedOptions));
+console.log('');
 console.log('');
 console.log('no sanitizer');
-console.log(marked(input, noSanitizerOpts));
+console.log(nosanitizer(input, markedOptions));
 console.log('');
 
 suite
   .add('builtInSanitizer', function() {
-    marked(input, builtInSanitizerOpts);
+    builtin(input, markedOptions);
   })
   .add('domPurifySanitizer', function() {
-    markedDOMPurify(input, domPurifySanitizerOpts);
+    domPurify(input, markedOptions);
+  })
+  .add('insaneSanitizer', function() {
+    insane(input, markedOptions);
   })
   .add('noSanitizer', function() {
-    marked(input, noSanitizerOpts);
+    nosanitizer(input, markedOptions);
   })
   .on('cycle', function(event) {
     benchmarks.add(event.target);
